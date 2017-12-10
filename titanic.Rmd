@@ -1,0 +1,52 @@
+train_data<- read.csv("file:///G:/R DataSets/titanic1/train.csv", header = TRUE)
+test_data<- read.csv("file:///G:/R DataSets/titanic1/test.csv", header = TRUE)
+dim(train_data)
+summary(train_data)
+#df.combined <- rbind(within(train_data),within(test_data))
+train_data$Survived<- as.factor(train_data$Survived)
+train_data[is.na(train_data$Age),"Age"] <- median(train_data$Age)
+test_data[is.na(test_data$Age),"Age"] <- median(test_data$Age)
+#set.seed(21)
+sample <- sample.int(n= nrow(train_data),
+                     size = floor(.9 * nrow(train_data)), replace = FALSE)
+train_data_train <- train_data[sample,]
+train_data_train
+train_data_test <- train_data[-sample,]
+train_data_test
+library(tree)
+tree.model <- tree( Survived ~ Sex +Age+ Embarked + Parch+Fare + Cabin,
+                    data = train_data_train) #plot(tree.model) #text(tree.model)
+model.prediction<- predict(tree.model, train_data_test)
+model.prediction
+dim(model.prediction)
+maxidx= function(arr) {
+  return(which(arr== max(arr)))
+}
+idx= apply(model.prediction,c(1), maxidx)
+model.prediction<- c('0', '1')[idx]
+model.prediction
+confmat= table(model.prediction, train_data_test$Survived) #For confusing matrix
+confmat
+accuracy = sum(diag(confmat))/sum(confmat) #Accuacy for test data
+print(accuracy)
+
+tree.model <- tree( Survived ~ Sex + Embarked + Parch , 
+                    data = train_data_train)
+plot(tree.model)
+text(tree.model)
+model.prediction<- predict(tree.model, test_data)
+model.prediction
+dim(model.prediction)
+maxidx= function(arr) {
+  return(which(arr== max(arr)))
+}
+
+idx= apply(model.prediction,c(1), maxidx)
+Survived<- c('0', '1')[idx]
+Survived
+PassengerId <- test_data$PassengerId
+
+Predicted_value<- data.frame(PassengerId, Survived)
+Predicted_value
+
+write.csv(Predicted_value, "file://C:/Users/Administrator/Desktop/DSC402ML/shashi15nov1.csv", row.names = FALSE)
